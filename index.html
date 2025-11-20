@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="fa">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>فرم ساده — ذخیره در Supabase</title>
+  <style>
+    body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;display:flex;align-items:center;justify-content:center;height:100vh;background:#f7fafc}
+    .card{background:#fff;padding:24px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.08);width:360px}
+    label{display:block;margin-top:12px;font-size:14px}
+    input,textarea{width:100%;padding:10px;margin-top:6px;border:1px solid #e2e8f0;border-radius:8px}
+    button{margin-top:14px;padding:10px 14px;border-radius:8px;border:0;cursor:pointer}
+    .ok{color:green;margin-top:10px}
+    .err{color:#b00020;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>فرم نمونه</h2>
+    <form id="myForm">
+      <label for="name">نام</label>
+      <input id="name" name="name" required />
+
+      <label for="message">پیام</label>
+      <textarea id="message" name="message" required rows="4"></textarea>
+
+      <button type="submit">ارسال</button>
+    </form>
+
+    <div id="feedback" aria-live="polite"></div>
+  </div>
+
+  <!-- Supabase JS SDK via CDN (نسخه 2.x) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ====== تنظیمات شما (حتما اینها را با مقدار واقعی جایگزین کنید) ======
+    const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co'; // از Settings > API در داشبورد Supabase
+    const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY'; // از Settings > API در داشبورد Supabase
+
+    // ایجاد کلاینت Supabase (زمانی که از CDN استفاده می‌کنید، یک آبجکت سراسری `supabase` وجود دارد)
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const form = document.getElementById('myForm');
+    const feedback = document.getElementById('feedback');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      feedback.textContent = '';
+
+      const name = document.getElementById('name').value.trim();
+      const message = document.getElementById('message').value.trim();
+
+      if (!name || !message) return;
+
+      // جدول فرضی: submissions (id serial, name text, message text, created_at timestamptz default now())
+      try {
+        const { data, error } = await supabase
+          .from('submissions')
+          .insert([{ name, message }])
+          .select(); // اگر نمی‌خواهید رکورد برگشت داده شود می‌توانید .select() را حذف کنید یا return: 'minimal' تنظیم کنید
+
+        if (error) throw error;
+
+        feedback.className = 'ok';
+        feedback.textContent = 'با موفقیت ارسال شد ✅';
+        form.reset();
+      } catch (err) {
+        console.error(err);
+        feedback.className = 'err';
+        feedback.textContent = 'خطا در ارسال — کنسول را ببینید';
+      }
+    });
+  </script>
+</body>
+</html>
