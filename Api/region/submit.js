@@ -1,38 +1,26 @@
-// submit.js
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-import { createClient } from '@supabase/supabase-js';
+const supabaseUrl = "https://wgtxnpqhroxdrekmckxc.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndndHhucHFIcm94ZHJla21ja3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIyMDUxNzQsImV4cCI6MjA0Nzc4MTE3NH0.0dBy7ANYq_909bb0519OgrtmdFZHGFAMl30NyHkkJHE";
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Only POST requests allowed" });
-  }
+const client = createClient(supabaseUrl, supabaseKey);
 
+export async function onRequestPost({ request }) {
   try {
-    const { region, description } = req.body;
+    const formData = await request.formData();
+    const name = formData.get("name");
+    const message = formData.get("message");
 
-    // چک کردن مقادیر ورودی
-    if (!region || !description) {
-      return res.status(400).json({ error: "Both fields are required" });
-    }
-
-    // اتصال به supabase
-    const supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE
-    );
-
-    // درج در دیتابیس
-    const { data, error } = await supabase
-      .from('regions')
-      .insert([{ region, description }]);
+    const { error } = await client
+      .from("submissions")
+      .insert([{ name, message }]);
 
     if (error) {
-      return res.status(500).json({ error: error.message });
+      return new Response("خطا: " + error.message, { status: 500 });
     }
 
-    return res.status(200).json({ success: true, data });
-
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return new Response("اطلاعات با موفقیت ذخیره شد");
+  } catch (e) {
+    return new Response("خطا در سرور: " + e.toString(), { status: 500 });
   }
 }
