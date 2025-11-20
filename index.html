@@ -30,42 +30,34 @@
     <div id="feedback" aria-live="polite"></div>
   </div>
 
-  <!-- Supabase JS SDK via CDN (نسخه 2.x) -->
   <!-- Supabase JS SDK via CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-  const SUPABASE_URL = "https://xmxmtoncjektbdptjots.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhteG10b25jamVrdGJkcHRqb3RzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2NDU1NDYsImV4cCI6MjA3OTIyMTU0Nn0.3KhyGSCY8gR-fAHAQnno8OoYfhTpwP6ZqYq0Kg053ws";
+const SUPABASE_URL = "https://xmxmtoncjektbdptjots.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhteG10b25jamVrdGJkcHRqb3RzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2NDU1NDYsImV4cCI6MjA3OTIyMTU0Nn0.3KhyGSCY8gR-fAHAQnno8OoYfhTpwP6ZqYq0Kg053ws";
 
-  // درست: استفاده از یک نام متفاوت
-  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const form = document.getElementById("myForm");
-  const feedback = document.getElementById("feedback");
+const form = document.getElementById("myForm");
+const feedback = document.getElementById("feedback");
 
-  form.addEventListener("submit", async (e) => {
+form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const name = document.getElementById("name").value.trim();
     const message = document.getElementById("message").value.trim();
 
-    feedback.textContent = "";
-
-    try {
-      const { data, error } = await client
-        .from("submissions")
+    const { data, error } = await client
+        .from("region")
         .insert([{ name, message }]);
 
-      if (error) throw error;
-
-      feedback.className = "ok";
-      feedback.textContent = "با موفقیت ثبت شد ✔️";
-      form.reset();
-    } catch (err) {
-      console.error(err);
-      feedback.className = "err";
-      feedback.textContent = "خطا در ارسال اطلاعات ❌";
+    if (error) {
+        feedback.textContent = "خطا: " + error.message;
+    } else {
+        feedback.textContent = "ثبت شد!";
+        form.reset();
     }
-  });
+});
 </script>
 
