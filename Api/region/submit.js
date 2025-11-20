@@ -1,21 +1,38 @@
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+// submit.js
 
-    const name = document.getElementById("name").value.trim();
-    const message = document.getElementById("message").value.trim();
+import { createClient } from '@supabase/supabase-js';
 
-    const response = await fetch("/api/region/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, message })
-    });
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Only POST requests allowed" });
+  }
 
-    const result = await response.json();
+  try {
+    const { region, description } = req.body;
 
-    if (!result.ok) {
-        feedback.textContent = "خطا: " + result.error;
-    } else {
-        feedback.textContent = "ثبت شد!";
-        form.reset();
+    // چک کردن مقادیر ورودی
+    if (!region || !description) {
+      return res.status(400).json({ error: "Both fields are required" });
     }
-});
+
+    // اتصال به supabase
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE
+    );
+
+    // درج در دیتابیس
+    const { data, error } = await supabase
+      .from('regions')
+      .insert([{ region, description }]);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.status(200).json({ success: true, data });
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
